@@ -1,0 +1,310 @@
+# Default Configuration for Skin Disease Detection System
+# =====================================================
+
+# Project Information
+project_name: "skin-disease-detection"
+experiment_name: "ensemble-v1"
+version: "1.0.0"
+
+# Data Configuration
+data:
+  num_classes: 8
+  class_names: 
+    - "melanoma"
+    - "nevus" 
+    - "basal_cell_carcinoma"
+    - "actinic_keratosis"
+    - "benign_keratosis"
+    - "dermatofibroma"
+    - "vascular_lesion"
+    - "squamous_cell_carcinoma"
+  
+  image_size: 224
+  target_image_size: 384
+  initial_image_size: 224
+  
+  # Dataset paths (update with actual paths)
+  datasets:
+    isic:
+      metadata_path: "data/processed/isic_metadata.csv"
+      image_dir: "data/processed/isic_images"
+    ham10000:
+      metadata_path: "data/processed/ham10000_metadata.csv" 
+      image_dir: "data/processed/ham10000_images"
+    ph2:
+      metadata_path: "data/processed/ph2_metadata.csv"
+      image_dir: "data/processed/ph2_images"
+  
+  # Data splits
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+  # Use mock data for demo (set to false for real data)
+  use_mock_data: true
+
+# Model Configuration
+model:
+  type: "ensemble"  # Options: "mobilenet", "efficientnet", "vit", "ensemble"
+  
+  # Individual model parameters
+  mobilenet:
+    dropout_rate: 0.3
+    use_se_blocks: true
+    use_spatial_attention: true
+  
+  efficientnet:
+    variant: "b3"
+    dropout_rate: 0.4
+  
+  vit:
+    patch_size: 16
+    embed_dim: 768
+    num_heads: 12
+    dropout_rate: 0.1
+  
+  # Ensemble parameters
+  ensemble:
+    use_confidence_weighting: true
+    use_meta_learner: true
+    
+  # Advanced features
+  use_uncertainty: true
+  use_progressive_resizing: true
+  progressive_resize_epochs: [50, 100]
+  progressive_resize_sizes: [224, 299, 384]
+
+# Training Configuration
+training:
+  # Basic parameters
+  batch_size: 32
+  num_epochs: 200
+  learning_rate: 0.0001
+  weight_decay: 0.01
+  
+  # Optimizer and scheduler
+  optimizer: "adamw"  # Options: "adamw", "sgd", "adam", "lamb"
+  scheduler: "cosine"  # Options: "cosine", "cosine_warmup", "plateau", "onecycle"
+  warmup_epochs: 10
+  
+  # Loss function
+  loss_type: "focal"  # Options: "focal", "label_smoothing", "distillation", "combined"
+  focal_gamma: 2.0
+  label_smoothing: 0.1
+  
+  # Advanced training techniques
+  use_knowledge_distillation: false
+  teacher_model_type: "ensemble"
+  teacher_model_path: ""
+  distillation_temperature: 4.0
+  distillation_alpha: 0.7
+  
+  # Progressive training
+  use_progressive_unfreezing: true
+  unfreeze_epochs: [20, 40, 60]
+  
+  # Regularization
+  gradient_clipping: 1.0
+  use_mixup: true
+  mixup_alpha: 0.2
+  use_cutmix: true
+  cutmix_alpha: 1.0
+
+# Data Augmentation
+augmentation:
+  severity: "medium"  # Options: "light", "medium", "heavy"
+  
+  # Geometric augmentations
+  rotation_limit: 45
+  shift_scale_rotate_prob: 0.5
+  horizontal_flip_prob: 0.5
+  vertical_flip_prob: 0.3
+  
+  # Color augmentations
+  brightness_contrast_prob: 0.5
+  hue_saturation_prob: 0.5
+  gamma_prob: 0.3
+  
+  # Advanced augmentations
+  elastic_transform_prob: 0.3
+  noise_prob: 0.3
+  blur_prob: 0.2
+  cutout_prob: 0.3
+  
+  # Test-time augmentation
+  use_tta: true
+  tta_transforms: 8
+
+# Bias Mitigation and Fairness
+fairness:
+  use_fairness_loss: true
+  fairness_type: "demographic_parity"  # Options: "demographic_parity", "equalized_odds"
+  fairness_lambda: 0.1
+  
+  # Sensitive attributes to monitor
+  sensitive_attributes:
+    - "skin_tone"
+    - "gender" 
+    - "age_group"
+  
+  # Bias assessment
+  assess_bias: true
+  bias_report_frequency: 10  # epochs
+
+# Evaluation Configuration
+evaluation:
+  # Metrics to calculate
+  metrics:
+    - "accuracy"
+    - "balanced_accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "auc_roc"
+    - "cohen_kappa"
+  
+  # Clinical evaluation
+  malignant_classes: ["melanoma", "basal_cell_carcinoma", "squamous_cell_carcinoma"]
+  risk_thresholds: [0.1, 0.3, 0.5, 0.7, 0.9]
+  
+  # Cross-validation
+  use_cross_validation: false
+  cv_folds: 5
+
+# Interpretability and Explainability
+interpretability:
+  generate_explanations: true
+  explanation_methods:
+    - "gradcam"
+    - "lime"
+    - "shap"
+  
+  # Sample images for explanation
+  num_explanation_samples: 10
+  save_explanations: true
+  
+  # Clinical features
+  extract_abcd_features: true
+  use_segmentation: false  # Requires segmentation model
+
+# Clinical Integration
+clinical:
+  # Risk stratification
+  risk_levels:
+    very_low: 0.05
+    low: 0.1
+    medium: 0.3
+    high: 0.7
+    critical: 0.9
+  
+  # Decision support
+  confidence_threshold: 0.7
+  uncertainty_threshold: 0.5
+  
+  # Quality assurance
+  enable_qa: true
+  qa_confidence_threshold: 0.7
+  
+  # Recommendations
+  generate_recommendations: true
+  include_differential_diagnosis: true
+
+# Deployment Configuration
+deployment:
+  # Model optimization
+  quantization: true
+  quantization_type: "dynamic"  # Options: "dynamic", "static"
+  
+  # Model formats
+  export_torchscript: true
+  export_onnx: true
+  onnx_opset_version: 11
+  
+  # Inference
+  batch_size: 1
+  device: "cpu"  # Options: "cpu", "cuda"
+  num_workers: 4
+  
+  # Performance monitoring
+  enable_monitoring: true
+  log_predictions: true
+  
+  # API server
+  enable_api: false
+  api_host: "0.0.0.0"
+  api_port: 8000
+
+# Logging and Monitoring
+logging:
+  # Weights & Biases
+  use_wandb: false
+  wandb_project: "skin-disease-detection"
+  wandb_entity: ""
+  
+  # TensorBoard
+  use_tensorboard: true
+  tensorboard_log_dir: "logs/tensorboard"
+  
+  # File logging
+  log_level: "INFO"
+  log_file: "logs/training.log"
+  
+  # Checkpoints
+  save_interval: 10  # epochs
+  keep_checkpoints: 5
+  
+  # Early stopping
+  early_stopping_patience: 20
+  early_stopping_metric: "val_balanced_accuracy"
+  early_stopping_mode: "max"
+
+# Directories
+directories:
+  data_dir: "data"
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  log_dir: "logs"
+  models_dir: "models"
+  cache_dir: "cache"
+
+# Hardware Configuration
+hardware:
+  # GPU settings
+  use_gpu: true
+  gpu_ids: [0]
+  mixed_precision: true
+  
+  # CPU settings
+  num_workers: 4
+  pin_memory: true
+  
+  # Memory management
+  memory_efficient: true
+  gradient_checkpointing: false
+
+# Reproducibility
+reproducibility:
+  seed: 42
+  deterministic: true
+  benchmark: false
+
+# Development and Debug
+debug:
+  fast_dev_run: false
+  limit_train_batches: 1.0
+  limit_val_batches: 1.0
+  profile: false
+  detect_anomaly: false
+
+# Hyperparameter Optimization
+hyperopt:
+  enable: false
+  method: "optuna"  # Options: "optuna", "ray_tune"
+  num_trials: 100
+  
+  # Search space
+  search_space:
+    learning_rate: [1e-5, 1e-2]
+    weight_decay: [1e-4, 1e-1] 
+    focal_gamma: [1.0, 5.0]
+    dropout_rate: [0.1, 0.5]
